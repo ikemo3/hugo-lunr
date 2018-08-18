@@ -1,0 +1,61 @@
+<html>
+<head>
+    <title>検索</title>
+</head>
+<body>
+
+<input type="search" id="searchText"/>
+<input type="button" value="検索"/>
+
+<div id="result"></div>
+{{- partialCached "hugo-lunr" . }}
+<script>
+    const HugoIndex = Lunr(function () {
+        this.use(Lunr.jp);
+        this.ref('url');
+        this.field('title');
+        this.field('content');
+
+        HugoIndexes.forEach(function (page) {
+            this.add(page);
+        }, this);
+    });
+
+    function search(event) {
+        const text = event.target.value;
+
+        const results = HugoIndex.search(text);
+
+        const pages = results.map(function (result) {
+            return HugoIndexes.filter(function (page) {
+                return page.url === result.ref;
+            })[0];
+        });
+
+        writeResults(pages);
+    }
+
+    function writeResults(pages) {
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = "";
+
+        pages.forEach(function (page) {
+            const div = document.createElement("div");
+            const a = document.createElement("a");
+            a.href = page.url;
+            a.textContent = page.title;
+
+            div.appendChild(a);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createTextNode(page.content));
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+
+            resultDiv.appendChild(div);
+        });
+    }
+
+    document.addEventListener('input', search);
+</script>
+</body>
+</html>
