@@ -1,2 +1,2 @@
-{{- $index := resources.Get "template/pageindex.js" | resources.ExecuteAsTemplate "js/pageindex.js" . }}
+{{- $index := resources.Get "template/pageindex.js" | resources.ExecuteAsTemplate "js/pageindex.js" . | fingerprint }}
 <script src="{{ $index.RelPermalink }}"></script>
