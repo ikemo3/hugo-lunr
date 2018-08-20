@@ -1,43 +1,70 @@
-<html>
-<head>
-    <title>検索</title>
-</head>
-<body>
-
+{{ define "main" }}
 <input type="search" id="searchText"/>
 <input type="button" value="検索"/>
 
 <div id="result"></div>
-{{- partialCached "hugo-lunr" . }}
+{{- partialCached "hugo-search" . }}
 <script>
-    const HugoIndex = Lunr(function () {
-        this.use(Lunr.jp);
-        this.ref('url');
-        this.field('title');
-        this.field('content');
+    function inputHandler(event) {
+        // IMEがオンでない場合を拾う
+        if (event.isComposing === true) {
+            return;
+        }
 
-        HugoIndexes.forEach(function (page) {
-            this.add(page);
-        }, this);
-    });
+        search(event);
+    }
+
+    function keyupHandler(event) {
+        // Enterキーを拾う
+        if (event.keyCode !== 13) {
+            return;
+        }
+
+        search(event);
+    }
 
     function search(event) {
         const text = event.target.value;
+        if (text === "") {
+            clearResults();
+            return;
+        }
 
-        const results = HugoIndex.search(text);
+        const pages = HugoIndexes.filter(function (page) {
+            if (page.url.includes(text)) {
+                return true;
+            }
 
-        const pages = results.map(function (result) {
-            return HugoIndexes.filter(function (page) {
-                return page.url === result.ref;
-            })[0];
+            if (page.title.includes(text)) {
+                return true;
+            }
+
+            if (page.tags !== undefined && page.tags.includes(text)) {
+                return true;
+            }
+
+            if (page.content.includes(text)) {
+                return true;
+            }
         });
 
-        writeResults(pages);
+        const count = pages.length;
+        const pages100 = pages.slice(0, 100);
+        writeResults(pages100, count);
     }
 
-    function writeResults(pages) {
+    function clearResults() {
         const resultDiv = document.getElementById("result");
         resultDiv.innerHTML = "";
+    }
+
+    function writeResults(pages, count) {
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = "";
+
+        const countDiv = document.createElement("div");
+        countDiv.textContent = count + "件ヒットしました。";
+        resultDiv.appendChild(countDiv);
 
         pages.forEach(function (page) {
             const div = document.createElement("div");
@@ -55,7 +82,7 @@
         });
     }
 
-    document.addEventListener('input', search);
+    document.addEventListener('input', inputHandler);
+    document.addEventListener('keyup', keyupHandler);
 </script>
-</body>
-</html>
+{{ end }}
