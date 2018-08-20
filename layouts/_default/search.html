@@ -16,16 +16,18 @@
             return;
         }
 
+        const searchTextLower = searchText.toLowerCase();
+
         const pages = HugoIndexes.filter(function (page) {
-            if (page.title.includes(searchText)) {
+            if (page.title.toLowerCase().includes(searchTextLower)) {
                 return true;
             }
 
-            if (page.tags !== undefined && page.tags.includes(searchText)) {
+            if (page.tags !== undefined && page.tags.includes(searchTextLower)) {
                 return true;
             }
 
-            if (page.content.includes(searchText)) {
+            if (page.content.toLowerCase().includes(searchTextLower)) {
                 return true;
             }
         });
