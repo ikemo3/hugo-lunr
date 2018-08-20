@@ -6,51 +6,33 @@
 {{- partialCached "hugo-search" . }}
 <script>
     function inputHandler(event) {
-        // IMEがオンでない場合を拾う
-        if (event.isComposing === true) {
-            return;
-        }
-
-        search(event);
-    }
-
-    function keyupHandler(event) {
-        // Enterキーを拾う
-        if (event.keyCode !== 13) {
-            return;
-        }
-
         search(event);
     }
 
     function search(event) {
-        const text = event.target.value;
-        if (text === "") {
+        const searchText = event.target.value;
+        if (searchText === "") {
             clearResults();
             return;
         }
 
         const pages = HugoIndexes.filter(function (page) {
-            if (page.url.includes(text)) {
+            if (page.title.includes(searchText)) {
                 return true;
             }
 
-            if (page.title.includes(text)) {
+            if (page.tags !== undefined && page.tags.includes(searchText)) {
                 return true;
             }
 
-            if (page.tags !== undefined && page.tags.includes(text)) {
-                return true;
-            }
-
-            if (page.content.includes(text)) {
+            if (page.content.includes(searchText)) {
                 return true;
             }
         });
 
         const count = pages.length;
         const pages100 = pages.slice(0, 100);
-        writeResults(pages100, count);
+        writeResults(searchText, pages100, count);
     }
 
     function clearResults() {
@@ -58,13 +40,50 @@
         resultDiv.innerHTML = "";
     }
 
-    function writeResults(pages, count) {
+    function highlight(searchText, str) {
+        let fromIndex = 0;
+        const span = document.createElement("span");
+        while (true) {
+            const index = str.indexOf(searchText, fromIndex);
+            if (index === -1) {
+                break;
+            }
+
+            // マッチしない文字列が長すぎる場合は切り捨てる
+            let before = str.substring(fromIndex, index);
+            if (before.length >= 100) {
+                before = "..." + before.substring(before.length - 100);
+            }
+
+            span.appendChild(document.createTextNode(before));
+
+            const searchTextSpan = document.createElement("span");
+            searchTextSpan.textContent = searchText;
+            searchTextSpan.style.backgroundColor = "#FFD700";
+            searchTextSpan.style.fontWeight = "bold";
+            span.appendChild(searchTextSpan);
+
+            fromIndex = index + searchText.length;
+        }
+
+        // 残り文字列も長すぎる場合は切り捨てる
+        let last = str.substring(fromIndex);
+        if (last.length >= 100) {
+            last = last.substring(0, 100) + "...";
+        }
+
+        span.appendChild(document.createTextNode(last));
+        return span;
+    }
+
+    function writeResults(searchText, pages, count) {
         const resultDiv = document.getElementById("result");
         resultDiv.innerHTML = "";
 
         const countDiv = document.createElement("div");
         countDiv.textContent = count + "件ヒットしました。";
         resultDiv.appendChild(countDiv);
+        resultDiv.appendChild(document.createElement("br"));
 
         pages.forEach(function (page) {
             const div = document.createElement("div");
@@ -74,7 +93,7 @@
 
             div.appendChild(a);
             div.appendChild(document.createElement("br"));
-            div.appendChild(document.createTextNode(page.content));
+            div.appendChild(highlight(searchText, page.content));
             div.appendChild(document.createElement("br"));
             div.appendChild(document.createElement("br"));
 
@@ -83,6 +102,5 @@
     }
 
     document.addEventListener('input', inputHandler);
-    document.addEventListener('keyup', keyupHandler);
 </script>
 {{ end }}
