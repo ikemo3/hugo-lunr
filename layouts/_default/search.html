@@ -9,6 +9,13 @@
         search(event);
     }
 
+    function decodeEntity(str) {
+        return str.replace(/&quot;/g, '"')
+                  .replace(/&gt;/g, '>')
+                  .replace(/&lt;/g, '<')
+                  .replace(/&amp;/g, '&');
+    }
+
     function search(event) {
         const searchText = event.target.value;
         if (searchText === "") {
@@ -27,7 +34,8 @@
                 return true;
             }
 
-            if (page.content.toLowerCase().includes(searchTextLower)) {
+            const content = decodeEntity(page.content.toLowerCase())
+            if (content.includes(searchTextLower)) {
                 return true;
             }
         });
@@ -57,10 +65,10 @@
                 before = "..." + before.substring(before.length - 100);
             }
 
-            span.appendChild(document.createTextNode(before));
+            span.appendChild(document.createTextNode(decodeEntity(before)));
 
             const searchTextSpan = document.createElement("span");
-            searchTextSpan.textContent = searchText;
+            searchTextSpan.textContent = decodeEntity(searchText);
             searchTextSpan.style.backgroundColor = "#FFD700";
             searchTextSpan.style.fontWeight = "bold";
             span.appendChild(searchTextSpan);
@@ -74,7 +82,7 @@
             last = last.substring(0, 100) + "...";
         }
 
-        span.appendChild(document.createTextNode(last));
+        span.appendChild(document.createTextNode(decodeEntity(last)));
         return span;
     }
 
