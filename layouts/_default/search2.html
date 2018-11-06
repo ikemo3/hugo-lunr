@@ -1,0 +1,8 @@
+{{ define "main" }}
+<input type="search" id="searchText"/>
+<input type="button" id="searchButton" value="検索"/>
+
+<div id="result"></div>
+{{- partialCached "hugo-search2" . }}
+<script src="/js/search.js"></script>
+{{ end }}
